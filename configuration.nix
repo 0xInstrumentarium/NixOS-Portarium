@@ -2,34 +2,20 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ inputs, config, pkgs, lib ... }:
+{ inputs, config, pkgs, lib, ... }:
 
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      inputs.home-manager.nixosModules.home-manager
     ];
-
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager = {
-    extraSpecialArgs = {inherit inputs;};
-    users = {
-      james = import ./home.nix;
-    };
-  };
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.initrd.luks.devices."luks-56bf288b-8718-4249-a686-091d9ac6fcda".device = "/dev/disk/by-uuid/56bf288b-8718-4249-a686-091d9ac6fcda";
+  boot.initrd.luks.devices."luks-8333a14b-c1ca-4aff-b0e9-99d8c25f6605".device = "/dev/disk/by-uuid/8333a14b-c1ca-4aff-b0e9-99d8c25f6605";
   networking.hostName = "portarium"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -55,11 +41,18 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
+  # Enable the XFCE Desktop Environment.
+  #  services.xserver.displayManager.lightdm.enable = true;
+  # services.xserver.desktopManager.xfce.enable = true;
+
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "no";
     variant = "";
   };
+
+  # Configure console keymap
+  console.keyMap = "no";
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -82,17 +75,14 @@
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
+
   programs.zsh ={
     enable = true;
-    
   };
   users.defaultUserShell = pkgs.zsh;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  
   users.users.james = {
-    useDefaultShell = true;
-    shell = pkgs.zsh;
     isNormalUser = true;
     description = "james";
     extraGroups = [ "networkmanager" "wheel" ];
@@ -100,7 +90,7 @@
     #  thunderbird
     ];
   };
-  
+
   security.sudo.extraRules = [
     {
       users = [ "james" ];
@@ -123,8 +113,6 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
-  
   vim
   git
   wget
@@ -136,7 +124,7 @@
   obsidian
   p7zip
   killall
-  btop  
+  btop
   mpv
   vesktop
   mpvpaper #video wallpaper
@@ -163,21 +151,27 @@
   grim
   playerctl #cli media control
   satty #like swappy
-  okular #pdf viewer 
-  zenity #gui dialog boxes 
+  kdePackages.okular #pdf viewer
+  zenity #gui dialog boxes
   fzf #fuzzy finder
   direnv #environment variable manager
   zbar #qr code reader
   taskwarrior3 #task manager for actual tasks
   inotify-tools #file system event watcher
-  
+  kdePackages.sddm
+  plymouth
+  dolphin
+  ddcutil
   ];
 
   programs.niri.enable = true;
-  kdePackages.sddm.enable = true;
-  
-  services.sddm.enable = true;
-  services.openssh.enable = true;
+
+  services.displayManager.sddm = {
+    enable = true;
+
+  # Enables experimental Wayland support
+  wayland.enable = true;
+  };
 
   boot = {
     plymouth = {
@@ -187,20 +181,20 @@
         (pkgs.stdenv.mkDerivation {
           pname = "plymouth-theme-simple";
           version = "1.0";
-          
+
           # CHANGE THIS to the actual path of your custom theme folder
-          src = /etc/nixos/config/programs/plymouth/simple; 
+          src = /etc/nixos/config/programs/plymouth/simple;
 
           installPhase = ''
             mkdir -p $out/share/plymouth/themes/simple
             cp -r * $out/share/plymouth/themes/simple/
-            
+
             # This dynamically replaces the @out@ placeholder with the real Nix store path
             substituteInPlace $out/share/plymouth/themes/simple/simple.plymouth \
               --replace "@out@" "$out"
           '';
-        })      
-	];
+        })
+        ];
     };
 
     consoleLogLevel = 0;
@@ -213,24 +207,15 @@
       "rd.systemd.show_status=false"
       "rd.udev.log_level=3"
       "udev.log_priority=3"
-      "amd_pstate=active" 
-      "tsc=reliable" 
+      "amd_pstate=active"
+      "tsc=reliable"
       "asus_wmi"
     ];
-    
+
   };
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # List services that you want to enable:
-
   # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -247,5 +232,7 @@
   system.stateVersion = "25.11"; # Did you read the comment?
 
 }
+
+
 
 
