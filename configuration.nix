@@ -1,9 +1,7 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
+# and in the NixOS manual (accessible by running 'nixos-help').
 { inputs, config, pkgs, lib, ... }:
-
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -14,50 +12,35 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.luks.devices."luks-8333a14b-c1ca-4aff-b0e9-99d8c25f6605".device = "/dev/disk/by-uuid/8333a14b-c1ca-4aff-b0e9-99d8c25f6605";
-  networking.hostName = "portarium"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
-  # Enable networking
+  networking.hostName = "portarium";
   networking.networkmanager.enable = true;
 
-  # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = "de_DE.UTF-8";
+    LC_ADDRESS        = "de_DE.UTF-8";
     LC_IDENTIFICATION = "de_DE.UTF-8";
-    LC_MEASUREMENT = "de_DE.UTF-8";
-    LC_MONETARY = "de_DE.UTF-8";
-    LC_NAME = "de_DE.UTF-8";
-    LC_NUMERIC = "de_DE.UTF-8";
-    LC_PAPER = "de_DE.UTF-8";
-    LC_TELEPHONE = "de_DE.UTF-8";
-    LC_TIME = "de_DE.UTF-8";
+    LC_MEASUREMENT    = "de_DE.UTF-8";
+    LC_MONETARY       = "de_DE.UTF-8";
+    LC_NAME           = "de_DE.UTF-8";
+    LC_NUMERIC        = "de_DE.UTF-8";
+    LC_PAPER          = "de_DE.UTF-8";
+    LC_TELEPHONE      = "de_DE.UTF-8";
+    LC_TIME           = "de_DE.UTF-8";
   };
 
-  # Enable the X11 windowing system.
+  # X11 is still needed as a base even with Wayland/niri
   services.xserver.enable = true;
-
-  # Enable the XFCE Desktop Environment.
-  #  services.xserver.displayManager.lightdm.enable = true;
-  # services.xserver.desktopManager.xfce.enable = true;
-
-  # Configure keymap in X11
   services.xserver.xkb = {
     layout = "no";
     variant = "";
   };
-
-  # Configure console keymap
   console.keyMap = "no";
 
-  # Enable CUPS to print documents.
   services.printing.enable = true;
 
-  # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -65,30 +48,16 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
   };
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
-
-  programs.zsh ={
-    enable = true;
-  };
+  programs.zsh.enable = true;
   users.defaultUserShell = pkgs.zsh;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.james = {
     isNormalUser = true;
     description = "james";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-    #  thunderbird
-    ];
+    extraGroups = [ "networkmanager" "wheel" "video" ];
+    packages = with pkgs; [];
   };
 
   security.sudo.extraRules = [
@@ -103,74 +72,82 @@
     }
   ];
 
-  # Install firefox.
-  programs.firefox.enable = true;
-
-  # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  vim
-  git
-  wget
-  zsh
-  home-manager
-  quickshell
-  fastfetch
-  ffmpeg
-  obsidian
-  p7zip
-  killall
-  btop
-  mpv
-  vesktop
-  mpvpaper #video wallpaper
-  neovim
-  libreoffice-qt
-  power-profiles-daemon
-  jdk8
-  anki-bin
-  spotify
-  qbittorrent
-  vivaldi
-  mullvad-vpn
-  eclipses.eclipse-cpp
-  ghostty
-  keepassxc
-  thunderbird
-  wmctrl #window manager control
-  yq-go #cli yaml processor
-  xclip #clipboard manager
-  matugen #like pywal
-  eww #widget widgets
-  swappy #edit screenshots w/slurp and grim
-  slurp
-  grim
-  playerctl #cli media control
-  satty #like swappy
-  kdePackages.okular #pdf viewer
-  zenity #gui dialog boxes
-  fzf #fuzzy finder
-  direnv #environment variable manager
-  zbar #qr code reader
-  taskwarrior3 #task manager for actual tasks
-  inotify-tools #file system event watcher
-  kdePackages.sddm
-  plymouth
-  dolphin
-  ddcutil
-  ];
+  # XDG portal — required for niri/wayland screensharing, file pickers etc.
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gnome ];
+    config.common.default = "*";
+  };
 
+  environment.systemPackages = with pkgs; [
+    vim
+    git
+    wget
+    zsh
+    home-manager
+    quickshell
+    fastfetch
+    ffmpeg
+    obsidian
+    p7zip
+    killall
+    btop
+    mpv
+    vesktop
+    mpvpaper
+    neovim
+    libreoffice-qt
+    power-profiles-daemon
+    jdk8
+    anki-bin
+    spotify
+    qbittorrent
+    vivaldi
+    mullvad-vpn
+    eclipses.eclipse-cpp
+    ghostty
+    keepassxc
+    thunderbird
+    kdePackages.dolphin
+    wmctrl
+    yq-go
+    xclip
+    matugen
+    eww
+    swappy
+    slurp
+    grim
+    playerctl
+    satty
+    kdePackages.okular
+    zenity
+    fzf
+    direnv
+    zbar
+    taskwarrior3
+    inotify-tools
+    kdePackages.sddm
+    plymouth
+    ddcutil
+    wl-clipboard        # needed by your niri screenshot binds
+    xwayland-satellite  # for xwayland support under niri
+    cava
+    swayosd
+    bat
+    rofi
+    kitty
+  ];
   programs.niri.enable = true;
+  environment.pathsToLink = [
+    "/share/applications"
+    "/share/xdg-desktop-portal"
+  ];
 
   services.displayManager.sddm = {
     enable = true;
-
-  # Enables experimental Wayland support
-  wayland.enable = true;
+    wayland.enable = true;
   };
 
   boot = {
@@ -181,58 +158,23 @@
         (pkgs.stdenv.mkDerivation {
           pname = "plymouth-theme-simple";
           version = "1.0";
-
-          # CHANGE THIS to the actual path of your custom theme folder
-          src = /etc/nixos/config/programs/plymouth/simple;
-
+          src = ./config/programs/plymouth/simple;
           installPhase = ''
             mkdir -p $out/share/plymouth/themes/simple
             cp -r * $out/share/plymouth/themes/simple/
-
-            # This dynamically replaces the @out@ placeholder with the real Nix store path
             substituteInPlace $out/share/plymouth/themes/simple/simple.plymouth \
               --replace "@out@" "$out"
           '';
         })
-        ];
+      ];
     };
 
     consoleLogLevel = 0;
     initrd.verbose = false;
-    kernelParams = [
-      "quiet"
-      "splash"
-      "boot.shell_on_fail"
-      "loglevel=3"
-      "rd.systemd.show_status=false"
-      "rd.udev.log_level=3"
-      "udev.log_priority=3"
-      "amd_pstate=active"
-      "tsc=reliable"
-      "asus_wmi"
-    ];
 
   };
 
-  # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "25.11"; # Did you read the comment?
-
+  system.stateVersion = "25.11";
 }
-
-
-
-

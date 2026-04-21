@@ -1,38 +1,27 @@
 { config, pkgs, ... }:
-
 {
   programs.niri = {
-    enable = true;
-    package = pkgs.niri;
+    # package is intentionally omitted — niri.nixosModules.niri injects
+    # the flake's own package via overlay, so pkgs.niri is already the
+    # flake version. Setting it here would conflict.
     settings = {
       workspaces = {
-        "browser" = {};
-        "vesktop" = {};
+        browser = { };
+        vesktop = { };
       };
-
       prefer-no-csd = true;
-
       hotkey-overlay = {
         skip-at-startup = true;
       };
-
       layout = {
-
         background-color = "#00000000";
-
         focus-ring = {
           enable = true;
           width = 3;
-          active = {
-            color = "#A8AEFF";
-          };
-          inactive = {
-            color = "#505050";
-          };
+          active.color = "#A8AEFF";
+          inactive.color = "#505050";
         };
-
         gaps = 6;
-
         struts = {
           left = 20;
           right = 20;
@@ -40,16 +29,18 @@
           bottom = 20;
         };
       };
-
       input = {
-        keyboard.xkb.layout = "de";
+        keyboard = {
+          xkb.layout = "no";
+          repeat-delay = 600;
+          repeat-rate = 25;
+          track-layout = "global";
+        };
         touchpad = {
           click-method = "button-areas";
-          dwt = true;
-          dwtp = true;
           natural-scroll = true;
-          scroll-method = "two-finger";
           tap = true;
+          scroll-method = "two-finger";
           tap-button-map = "left-right-middle";
           middle-emulation = true;
           accel-profile = "adaptive";
@@ -57,24 +48,21 @@
         focus-follows-mouse.enable = true;
         warp-mouse-to-focus.enable = false;
       };
-
       outputs = {
         "DP-1" = {
           mode = {
             width = 2560;
             height = 1440;
-            refresh = 359.97900;
+            refresh = 359.979;
           };
           scale = 1.0;
           position = { x = 0; y = 0; };
         };
       };
-
       cursor = {
         size = 20;
         theme = "Adwaita";
       };
-
       environment = {
         CLUTTER_BACKEND = "wayland";
         GDK_BACKEND = "wayland,x11";
@@ -83,10 +71,8 @@
         QT_QPA_PLATFORM = "wayland";
         QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
         ELECTRON_OZONE_PLATFORM_HINT = "auto";
-
         XDG_SESSION_TYPE = "wayland";
         XDG_CURRENT_DESKTOP = "niri";
-        #DISPLAY = ":0";
       };
     };
   };

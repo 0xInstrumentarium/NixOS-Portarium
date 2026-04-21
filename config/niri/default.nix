@@ -3,7 +3,7 @@
 {
   imports = [
     ./settings.nix
-    ./binds.nix
+    ./keybinds.nix
     ./rules.nix
     ./autostart.nix
     ./scripts.nix
