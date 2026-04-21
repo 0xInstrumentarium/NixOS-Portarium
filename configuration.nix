@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ inputs, config, pkgs, ... }:
+{ inputs, config, pkgs, lib ... }:
 
 {
   imports =
@@ -11,6 +11,8 @@
       inputs.home-manager.nixosModules.home-manager
     ];
 
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
   home-manager = {
     extraSpecialArgs = {inherit inputs;};
     users = {
@@ -21,7 +23,6 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
   boot.initrd.luks.devices."luks-56bf288b-8718-4249-a686-091d9ac6fcda".device = "/dev/disk/by-uuid/56bf288b-8718-4249-a686-091d9ac6fcda";
   networking.hostName = "portarium"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -54,10 +55,6 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Enable the XFCE Desktop Environment.
-  services.xserver.displayManager.lightdm.enable = true;
-  services.xserver.desktopManager.xfce.enable = true;
-
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "no";
@@ -89,8 +86,12 @@
     enable = true;
     
   };
+  users.defaultUserShell = pkgs.zsh;
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  
   users.users.james = {
+    useDefaultShell = true;
     shell = pkgs.zsh;
     isNormalUser = true;
     description = "james";
@@ -99,6 +100,18 @@
     #  thunderbird
     ];
   };
+  
+  security.sudo.extraRules = [
+    {
+      users = [ "james" ];
+      commands = [
+        {
+          command = "ALL";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 
   # Install firefox.
   programs.firefox.enable = true;
@@ -111,12 +124,101 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
+  
   vim
   git
   wget
-  pkgs.zsh
-  pkgs.home-manager
+  zsh
+  home-manager
+  quickshell
+  fastfetch
+  ffmpeg
+  obsidian
+  p7zip
+  killall
+  btop  
+  mpv
+  vesktop
+  mpvpaper #video wallpaper
+  neovim
+  libreoffice-qt
+  power-profiles-daemon
+  jdk8
+  anki-bin
+  spotify
+  qbittorrent
+  vivaldi
+  mullvad-vpn
+  eclipses.eclipse-cpp
+  ghostty
+  keepassxc
+  thunderbird
+  wmctrl #window manager control
+  yq-go #cli yaml processor
+  xclip #clipboard manager
+  matugen #like pywal
+  eww #widget widgets
+  swappy #edit screenshots w/slurp and grim
+  slurp
+  grim
+  playerctl #cli media control
+  satty #like swappy
+  okular #pdf viewer 
+  zenity #gui dialog boxes 
+  fzf #fuzzy finder
+  direnv #environment variable manager
+  zbar #qr code reader
+  taskwarrior3 #task manager for actual tasks
+  inotify-tools #file system event watcher
+  
   ];
+
+  programs.niri.enable = true;
+  kdePackages.sddm.enable = true;
+  
+  services.sddm.enable = true;
+  services.openssh.enable = true;
+
+  boot = {
+    plymouth = {
+      enable = true;
+      theme = "simple";
+      themePackages = [
+        (pkgs.stdenv.mkDerivation {
+          pname = "plymouth-theme-simple";
+          version = "1.0";
+          
+          # CHANGE THIS to the actual path of your custom theme folder
+          src = /etc/nixos/config/programs/plymouth/simple; 
+
+          installPhase = ''
+            mkdir -p $out/share/plymouth/themes/simple
+            cp -r * $out/share/plymouth/themes/simple/
+            
+            # This dynamically replaces the @out@ placeholder with the real Nix store path
+            substituteInPlace $out/share/plymouth/themes/simple/simple.plymouth \
+              --replace "@out@" "$out"
+          '';
+        })      
+	];
+    };
+
+    consoleLogLevel = 0;
+    initrd.verbose = false;
+    kernelParams = [
+      "quiet"
+      "splash"
+      "boot.shell_on_fail"
+      "loglevel=3"
+      "rd.systemd.show_status=false"
+      "rd.udev.log_level=3"
+      "udev.log_priority=3"
+      "amd_pstate=active" 
+      "tsc=reliable" 
+      "asus_wmi"
+    ];
+    
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -129,7 +231,6 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
